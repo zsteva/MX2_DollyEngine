@@ -74,19 +74,21 @@ TODO:
 #include "merlin_mount.h"
 #include "ds_eeprom.h"
 
+#include <avr/pgmspace.h>
+
 #define FIRMWARE_VERSION 94
   // EE version - change this to force reset of EE memory
 #define EE_VERSION 93
 
   // motor PWM
-#define MOTOR0_P 5
-#define MOTOR1_P 6
-#define MOTOR0_DIR 15
-#define MOTOR1_DIR 16
+#define MOTOR0_P 12
+#define MOTOR1_P 13
+#define MOTOR0_DIR 14
+#define MOTOR1_DIR 15
 
  // camera pins
-#define CAMERA_PIN 13
-#define FOCUS_PIN 12
+#define CAMERA_PIN 16
+#define FOCUS_PIN 17
 
 #define MAX_MOTORS 2
 
@@ -97,22 +99,23 @@ TODO:
 /* User Interface Values */
 
   // External switch pins
-#define EXT_PIN1 2
-#define EXT_PIN2 3
+#define EXT_PIN1 18
+#define EXT_PIN2 19
 
   // lcd pins
-#define LCD_RS  17
-#define LCD_EN  18
-#define LCD_D4  11
-#define LCD_D5  8
-#define LCD_D6  7
-#define LCD_D7  4
+#define LCD_RS  8
+#define LCD_EN  9
+#define LCD_D4  4
+#define LCD_D5  5
+#define LCD_D6  6
+#define LCD_D7  7
+
 
  // which input is our button
 #define BUT_PIN 14
 
   // lcd backlight pin
-#define LCD_BKL 9
+#define LCD_BKL 10
 
   // max # of LCD characters (including newline)
 #define MAX_LCD_STR 17
@@ -131,19 +134,19 @@ TODO:
 #define BUT4  5
 
   // which buttons?
-#define BUT_UP BUT4
-#define BUT_DN BUT3
-#define BUT_CT BUT0
-#define BUT_LT BUT2
-#define BUT_RT BUT1
+#define BUT_UP BUT1
+#define BUT_DN BUT2
+#define BUT_CT BUT4
+#define BUT_LT BUT3
+#define BUT_RT BUT0
 
   // analog button read values
-#define BUT0_VAL  70
-#define BUT1_VAL  250
-#define BUT2_VAL  450
-#define BUT3_VAL  655
+#define BUT0_VAL  0
+#define BUT1_VAL  130
+#define BUT2_VAL  300
+#define BUT3_VAL  480
 //#define BUT3_VAL 540
-#define BUT4_VAL  830
+#define BUT4_VAL  720
 
   // button variance range
 #define BUT_THRESH  60
@@ -163,82 +166,82 @@ TODO:
 
 
   // menu strings
-prog_char menu_1[] PROGMEM = "Manual Move";
-prog_char menu_2[] PROGMEM = "Axis 1";
-prog_char menu_3[] PROGMEM = "Axis 2";
-prog_char menu_4[] PROGMEM = "Camera";
-prog_char menu_5[] PROGMEM = "Park";
-prog_char menu_6[] PROGMEM = "Reset";
-prog_char menu_7[] PROGMEM = "Settings";
-prog_char menu_8[] PROGMEM = "Scope";
+const char menu_1[] PROGMEM = "Manual Move";
+const char menu_2[] PROGMEM = "Axis 1";
+const char menu_3[] PROGMEM = "Axis 2";
+const char menu_4[] PROGMEM = "Camera";
+const char menu_5[] PROGMEM = "Park";
+const char menu_6[] PROGMEM = "Reset";
+const char menu_7[] PROGMEM = "Settings";
+const char menu_8[] PROGMEM = "Scope";
 
-prog_char manual_menu_1[] PROGMEM = "Axis 1";
-prog_char manual_menu_2[] PROGMEM = "Axis 2";
-prog_char manual_menu_3[] PROGMEM = "Scope";
+const char manual_menu_1[] PROGMEM = "Axis 1";
+const char manual_menu_2[] PROGMEM = "Axis 2";
+const char manual_menu_3[] PROGMEM = "Scope";
 
-prog_char axis_menu_1[] PROGMEM = "Ramp Shots";
-prog_char axis_menu_2[] PROGMEM = "RPM";
-prog_char axis_menu_4[] PROGMEM = "Angle";
-prog_char axis_menu_5[] PROGMEM = "Calibrate";
-prog_char axis_menu_6[] PROGMEM = "Slow Mode IPM";
-prog_char axis_menu_7[] PROGMEM = "Dist. per Rev";
-prog_char axis_menu_8[] PROGMEM = "Min Pulse";
-prog_char axis_menu_10[] PROGMEM = "Lead In";
-prog_char axis_menu_11[] PROGMEM = "Lead Out";
-prog_char axis_menu_12[] PROGMEM = "Cal. Constant";
+const char axis_menu_1[] PROGMEM = "Ramp Shots";
+const char axis_menu_2[] PROGMEM = "RPM";
+const char axis_menu_4[] PROGMEM = "Angle";
+const char axis_menu_5[] PROGMEM = "Calibrate";
+const char axis_menu_6[] PROGMEM = "Slow Mode IPM";
+const char axis_menu_7[] PROGMEM = "Dist. per Rev";
+const char axis_menu_8[] PROGMEM = "Min Pulse";
+const char axis_menu_10[] PROGMEM = "Lead In";
+const char axis_menu_11[] PROGMEM = "Lead Out";
+const char axis_menu_12[] PROGMEM = "Cal. Constant";
 
-prog_char camera_menu_1[] PROGMEM = "Interval sec";
-prog_char camera_menu_2[] PROGMEM = "Max Shots";
-prog_char camera_menu_3[] PROGMEM = "Exp. Time ms";
-prog_char camera_menu_4[] PROGMEM = "Exp. Delay ms";
-prog_char camera_menu_5[] PROGMEM = "Focus Tap ms";
-prog_char camera_menu_6[] PROGMEM = "Shutter+Focus";
-prog_char camera_menu_7[] PROGMEM = "Repeat";
-prog_char camera_menu_8[] PROGMEM = "Repeat Delay";
+const char camera_menu_1[] PROGMEM = "Interval sec";
+const char camera_menu_2[] PROGMEM = "Max Shots";
+const char camera_menu_3[] PROGMEM = "Exp. Time ms";
+const char camera_menu_4[] PROGMEM = "Exp. Delay ms";
+const char camera_menu_5[] PROGMEM = "Focus Tap ms";
+const char camera_menu_6[] PROGMEM = "Shutter+Focus";
+const char camera_menu_7[] PROGMEM = "Repeat";
+const char camera_menu_8[] PROGMEM = "Repeat Delay";
 
-prog_char set_menu_1[] PROGMEM = "Alt Menu";
-prog_char set_menu_2[] PROGMEM = "Motor Disp";
-prog_char set_menu_3[] PROGMEM = "Motor Mode";
-prog_char set_menu_4[] PROGMEM = "Backlight";
-prog_char set_menu_5[] PROGMEM = "AutoDim (sec)";
-prog_char set_menu_6[] PROGMEM = "Blank LCD";
-prog_char set_menu_7[] PROGMEM = "I/O 1";
-prog_char set_menu_8[] PROGMEM = "I/O 2";
-prog_char set_menu_9[] PROGMEM = "Metric Disp.";
-prog_char set_menu_10[] PROGMEM = "Scope";
-prog_char set_menu_11[] PROGMEM = "Cal. Spd Low";
-prog_char set_menu_12[] PROGMEM = "Cal. Spd Hi";
-prog_char set_menu_13[] PROGMEM = "AltOut Pre ms";
-prog_char set_menu_14[] PROGMEM = "AltOut Post ms";
-prog_char set_menu_15[] PROGMEM = "USB Trigger";
-prog_char set_menu_16[] PROGMEM = "Invert Dir";
-prog_char set_menu_17[] PROGMEM = "Invert I/O";
-prog_char set_menu_18[] PROGMEM = "ULine Cursor"; // underline cursor
+const char set_menu_1[] PROGMEM = "Alt Menu";
+const char set_menu_2[] PROGMEM = "Motor Disp";
+const char set_menu_3[] PROGMEM = "Motor Mode";
+const char set_menu_4[] PROGMEM = "Backlight";
+const char set_menu_5[] PROGMEM = "AutoDim (sec)";
+const char set_menu_6[] PROGMEM = "Blank LCD";
+const char set_menu_7[] PROGMEM = "I/O 1";
+const char set_menu_8[] PROGMEM = "I/O 2";
+const char set_menu_9[] PROGMEM = "Metric Disp.";
+const char set_menu_10[] PROGMEM = "Scope";
+const char set_menu_11[] PROGMEM = "Cal. Spd Low";
+const char set_menu_12[] PROGMEM = "Cal. Spd Hi";
+const char set_menu_13[] PROGMEM = "AltOut Pre ms";
+const char set_menu_14[] PROGMEM = "AltOut Post ms";
+const char set_menu_15[] PROGMEM = "USB Trigger";
+const char set_menu_16[] PROGMEM = "Invert Dir";
+const char set_menu_17[] PROGMEM = "Invert I/O";
+const char set_menu_18[] PROGMEM = "ULine Cursor"; // underline cursor
 
-prog_char park_menu_1[] PROGMEM = "Park Left";
-prog_char park_menu_2[] PROGMEM = "Park Right";
-//prog_char park_menu_3[] PROGMEM = "Park Middle";
+const char park_menu_1[] PROGMEM = "Park Left";
+const char park_menu_2[] PROGMEM = "Park Right";
+//const char park_menu_3[] PROGMEM = "Park Middle";
 
-prog_char reset_menu_1[] PROGMEM = "Reset Cal";
-prog_char reset_menu_2[] PROGMEM = "Reset Mem";
+const char reset_menu_1[] PROGMEM = "Reset Cal";
+const char reset_menu_2[] PROGMEM = "Reset Mem";
 
-prog_char scope_menu_1[] PROGMEM = "Pan Man. Spd.";
-prog_char scope_menu_2[] PROGMEM = "Tilt Man. Spd.";
+const char scope_menu_1[] PROGMEM = "Pan Man. Spd.";
+const char scope_menu_2[] PROGMEM = "Tilt Man. Spd.";
 
  // menu organization
 
-PROGMEM const char *menu_str[]  = { menu_1, menu_2, menu_3, menu_4, menu_5, menu_6, menu_7, menu_8 };
+PROGMEM const char * const menu_str[] = { menu_1, menu_2, menu_3, menu_4, menu_5, menu_6, menu_7, menu_8 };
 
-PROGMEM const char *man_str[]   = { manual_menu_1, manual_menu_2, manual_menu_3 };
+PROGMEM const char * const man_str[]   = { manual_menu_1, manual_menu_2, manual_menu_3 };
 
-PROGMEM const char *park_str[]   = { park_menu_1, park_menu_2 };
+PROGMEM const char * const park_str[]   = { park_menu_1, park_menu_2 };
 
-PROGMEM const char *axis0_str[] = { axis_menu_1, axis_menu_10, axis_menu_11, axis_menu_2, axis_menu_4, axis_menu_5, axis_menu_12, axis_menu_6, axis_menu_7, axis_menu_8 };
-PROGMEM const char *axis1_str[] = { axis_menu_1, axis_menu_10, axis_menu_11, axis_menu_2, axis_menu_4, axis_menu_5, axis_menu_12, axis_menu_6, axis_menu_7, axis_menu_8 };
-PROGMEM const char *cam_str[]   = { camera_menu_1, camera_menu_2, camera_menu_3, camera_menu_4, camera_menu_5, camera_menu_6, camera_menu_7, camera_menu_8 };
-PROGMEM const char *set_str[]   = { set_menu_1, set_menu_2, set_menu_3, set_menu_4, set_menu_5, set_menu_6, set_menu_7, set_menu_8, set_menu_9, set_menu_10, set_menu_11, set_menu_12, set_menu_13, set_menu_14, set_menu_15, set_menu_16, set_menu_17, set_menu_18 };
-PROGMEM const char *scope_str[] = { scope_menu_1, scope_menu_2 };
-PROGMEM const char *reset_str[] = { reset_menu_1, reset_menu_2 };
+PROGMEM const char * const axis0_str[] = { axis_menu_1, axis_menu_10, axis_menu_11, axis_menu_2, axis_menu_4, axis_menu_5, axis_menu_12, axis_menu_6, axis_menu_7, axis_menu_8 };
+PROGMEM const char * const axis1_str[] = { axis_menu_1, axis_menu_10, axis_menu_11, axis_menu_2, axis_menu_4, axis_menu_5, axis_menu_12, axis_menu_6, axis_menu_7, axis_menu_8 };
+PROGMEM const char * const cam_str[]   = { camera_menu_1, camera_menu_2, camera_menu_3, camera_menu_4, camera_menu_5, camera_menu_6, camera_menu_7, camera_menu_8 };
+PROGMEM const char * const set_str[]   = { set_menu_1, set_menu_2, set_menu_3, set_menu_4, set_menu_5, set_menu_6, set_menu_7, set_menu_8, set_menu_9, set_menu_10, set_menu_11, set_menu_12, set_menu_13, set_menu_14, set_menu_15, set_menu_16, set_menu_17, set_menu_18 };
+PROGMEM const char * const scope_str[] = { scope_menu_1, scope_menu_2 };
+PROGMEM const char * const reset_str[] = { reset_menu_1, reset_menu_2 };
 
   // max number of inputs for each menu (in order listed above, starting w/ 0)
 byte max_menu[9]  = {7,2,9,9,7,1,1,17,1};

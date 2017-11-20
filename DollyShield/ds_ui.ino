@@ -283,6 +283,7 @@ byte get_button() {
 	if (millis() - but_push_tm < BUT_DEBOUNCE_MS) {
 		return 0; // not long enough yet
 	}
+
   
   if( val_read > (BUT0_VAL - BUT_THRESH) && val_read < (BUT0_VAL + BUT_THRESH) ) {
     bp = BUT0;
